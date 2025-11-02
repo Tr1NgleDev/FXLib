@@ -127,6 +127,7 @@ namespace FX
 
 		~ParticleSystem() { particles.clear(); renderer.~InstancedMeshRenderer(); }
 		ParticleSystem() {}
+		ParticleSystem(const glm::vec4& origin, RND<float> lifetime, ParticleSpace particleSpace, size_t maxParticles);
 		ParticleSystem(
 			const glm::vec4& origin,
 			const glm::vec4& gravity,

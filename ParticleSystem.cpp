@@ -6,6 +6,18 @@ using namespace fdm;
 
 const FX::Shader* FX::ParticleSystem::defaultShader = nullptr;
 
+ParticleSystem::ParticleSystem(const glm::vec4& origin, RND<float> lifetime, ParticleSpace particleSpace, size_t maxParticles)
+	: origin(origin),
+	lifetime(lifetime),
+	particleSpace(particleSpace),
+	maxParticles(maxParticles),
+	trailRenderer(500, maxParticles)
+{
+	trailRenderer.user = this;
+	trailRenderer.billboard = true;
+	setMaxParticles(maxParticles);
+}
+
 ParticleSystem::ParticleSystem(
 	const glm::vec4& origin,
 	const glm::vec4& gravity,

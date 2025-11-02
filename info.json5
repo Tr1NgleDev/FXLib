@@ -5,7 +5,7 @@
   descriptionFile: "description.txt",
   version: "0.1 [BETA]",
   gameVersion: "0.2.1.4",
-  modDLL: "4DMod.dll",
+  modDLL: "FXLib.dll",
   externalDLLs: [
   ],
   dependencies: {
