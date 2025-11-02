@@ -1,9 +1,22 @@
-# 4DMod Example
- This is a project example for making 4D Miner mods using the [4D-Modding](https://www.4d-modding.com/ "4D-Modding") framework.
- 
- For basic tutorials (like on how to start modding and on how to package the mod) you should check the [4dmodding-tutorials](https://github.com/4D-Modding/4dmodding-tutorials "4dmodding-tutorials") repo.
- More advanced tutorials are going to come later in a video format.
+# FXLib    [BETA]
 
- You can also check out [4D-Fly Source-Code](https://github.com/4D-Modding/4DFly).
+A [4D-Modding](https://4d-modding.com/) library for various graphics effects and optimizations using OpenGL 4.5 Core.  
 
- Also if you are going to use this 4DMod Example, use it as a repo template instead of just `git clone`-ing it 
+-----------------
+
+## Features:
+- Particle System
+- Trails
+- Post-Processing Passes
+- Shader Storage Buffers
+- Instanced Mesh Rendering
+- Shader Patching
+
+-----------------
+
+## Usage:
+- Download the latest release of `fxlib-dev` and unzip it somewhere in your mod's project (For example: `ProjectFolder/fxlib-dev/LICENSE, FXLib.lib, include/, ...`)
+- Link the `FXLib.lib` file in your mod project (In `Project Properties -> Linker -> Input -> Additional Dependencies`)
+- Add the `include` folder in your mod project (In `Project Properties -> C/C++ -> General -> Additional Include Directories`)
+
+`ParticleSystem` and `PostPass` usage examples can be found in [test.cpp](./test.cpp) at the moment.  

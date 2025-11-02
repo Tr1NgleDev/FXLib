@@ -1,0 +1,15 @@
+-------------------
+FXLib    [BETA]  
+-------------------
+
+A library for various graphics effects and optimizations using OpenGL 4.5 Core.  
+
+-----------------
+Features:  
+- Particle System  
+- Trails  
+- Post-Processing Passes  
+- Shader Storage Buffers  
+- Instanced Mesh Rendering  
+- Shader Patching  
+-----------------
