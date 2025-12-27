@@ -308,7 +308,7 @@ $hook(void, Framebuffer, render)
 					{
 						const PostPassGroup& _group = passGroups[k];
 						int k_ = i - k;
-						std::string name = std::format("{}group", std::string(k_, '_'));
+						std::string name = std::format("{}_group", std::string(k_, 'p'));
 						glBindTextureUnit(j + 3, _group.outputTex);
 						{
 							int loc = glGetUniformLocation(pass.shader->id(), name.c_str());
@@ -349,7 +349,7 @@ $hook(void, Framebuffer, render)
 					{
 						glBindTextureUnit(j + 3, outputID);
 						{
-							int loc = glGetUniformLocation(pass.shader->id(), std::format("{}group", std::string(i, '_')).c_str());
+							int loc = glGetUniformLocation(pass.shader->id(), std::format("{}_group", std::string(i, 'p')).c_str());
 							if (loc != -1)
 								glProgramUniform1i(pass.shader->id(), loc, j + 3);
 							++j;
