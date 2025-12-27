@@ -121,6 +121,7 @@ namespace FX
 		PostPassGroup& operator=(PostPassGroup&& other) noexcept;
 		PostPassGroup(const PostPassGroup& other);
 		PostPassGroup& operator=(const PostPassGroup& other);
+		~PostPassGroup();
 	};
 
 	using FramebufferInitCallback = std::add_pointer<void(uint32_t fbo, uint32_t colorTex, uint32_t depthTex, int width, int height, std::vector<PostPassGroup>& passGroups)>::type;

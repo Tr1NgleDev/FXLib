@@ -133,6 +133,19 @@ const fdm::Shader* PostPass::loadPassShader(const stl::string& name, const stl::
 	return ShaderManager::load(name, "assets/shaders/pass.vert", std::format("../../{}", fragmentPath));
 }
 
+PostPassGroup::~PostPassGroup()
+{
+	if (targetFBO)
+	{
+		glDeleteFramebuffers(1, &targetFBO);
+		targetFBO = 0;
+	}
+	outputTex = 0;
+	passes.clear();
+	uniforms.clear();
+	uniformTextures.clear();
+}
+
 PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 {
 	this->passes = other.passes;

@@ -346,12 +346,11 @@ $hook(void, Framebuffer, render)
 						}
 					}
 					{
-						glBindTextureUnit(j + 3, outputID);
 						{
 							std::string prefix = std::string(i + 1, 'p');
 							int loc = glGetUniformLocation(pass.shader->id(), std::format("{}_group", prefix).c_str());
 							if (loc != -1)
-								glProgramUniform1i(pass.shader->id(), loc, j + 3);
+								glProgramUniform1i(pass.shader->id(), loc, 0);
 							++j;
 						}
 					}
