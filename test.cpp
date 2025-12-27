@@ -69,7 +69,7 @@ $hook(void, StateGame, init, StateManager& s)
 		initializedParticles = true;
 	}
 
-	FX::applyPostProcessing(self->renderFramebuffer, [](uint32_t fbo, uint32_t colorTex, uint32_t depthTex, int width, int height, std::vector<FX::PostPass>& passes)
+	FX::applyPostProcessing(self->renderFramebuffer, [](uint32_t fbo, uint32_t colorTex, uint32_t depthTex, int width, int height, std::vector<FX::PostPassGroup>& passes)
 		{
 			passes.emplace_back(FX::PostPass::loadPassShader("me.test.invertPass", std::format("{}/{}", fdm::getModPath(fdm::modID), "assets/shaders/invert.frag")));
 		});

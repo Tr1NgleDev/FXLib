@@ -32,7 +32,7 @@ public:
 	uint32_t _magic_number = MAGIC_NUMBER;
 	uint32_t depthTex = 0;
 	PAD(8);
-	std::vector<PostPass>* passes{};
+	std::vector<PostPassGroup>* passGroups{};
 	void* texPtr = &colorTex;
 	const fdm::Shader* shader = nullptr;
 	std::vector<FramebufferInitCallback> initCallbacks{};
@@ -61,11 +61,11 @@ $hook(void, Framebuffer, cleanup)
 		s->height = 1;
 	}
 
-	if (s->passes)
+	if (s->passGroups)
 	{
-		s->passes->clear();
-		delete s->passes;
-		s->passes = nullptr;
+		s->passGroups->clear();
+		delete s->passGroups;
+		s->passGroups = nullptr;
 	}
 
 	framebuffers.erase(s);
@@ -93,7 +93,7 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 	s->width = width;
 	s->height = height;
 
-	s->passes = new std::vector<PostPass>();
+	s->passGroups = new std::vector<PostPassGroup>();
 
 	glGenFramebuffers(1, &s->fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, s->fbo);
@@ -126,7 +126,7 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 
 	framebuffers.insert(s);
 
-	for (auto& callback : s->initCallbacks) callback(s->fbo, s->colorTex, s->depthTex, s->width, s->height, *s->passes);
+	for (auto& callback : s->initCallbacks) callback(s->fbo, s->colorTex, s->depthTex, s->width, s->height, *s->passGroups);
 }
 
 $hook(void, Framebuffer, render)
@@ -136,59 +136,245 @@ $hook(void, Framebuffer, render)
 		return original(self);
 
 	uint32_t outputID = s->colorTex;
-	auto& passes = *s->passes;
-	if (!passes.empty())
+	auto& passGroups = *s->passGroups;
+	if (!passGroups.empty())
 	{
-		int fb = 0;
+		int fb = NULL;
+		int blendEquationRGB = NULL;
+		int blendEquationA = NULL;
+		int blendSrcRGB = NULL;
+		int blendSrcA = NULL;
+		int blendDstRGB = NULL;
+		int blendDstA = NULL;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fb);
+		glGetIntegerv(GL_BLEND_EQUATION_RGB, &blendEquationRGB);
+		glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &blendEquationA);
+		glGetIntegerv(GL_BLEND_SRC_RGB, &blendSrcRGB);
+		glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcA);
+		glGetIntegerv(GL_BLEND_DST_RGB, &blendDstRGB);
+		glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDstA);
 
-		glDisable(GL_BLEND);
 		glDisable(GL_ALPHA_TEST);
-		for (int i = 0; i < passes.size(); ++i)
+		for (int i = 0; i < passGroups.size(); ++i)
 		{
-			PostPass& pass = passes[i];
-			if (pass.width != s->width || pass.height != s->height)
-				pass.initTarget(s->width, s->height, GL_RGBA, GL_RGBA, GL_FLOAT);
+			PostPassGroup& group = passGroups[i];
+			if (group.passes.empty()) continue;
 
-			glBindFramebuffer(GL_FRAMEBUFFER, pass.targetFBO);
+			if (!group.targetFBO)
+			{
+				glCreateFramebuffers(1, &group.targetFBO);
+			}
+
+			if (group.blending.mode == PostPassGroup::Blending::DISABLED)
+			{
+				glDisable(GL_BLEND);
+			}
+			else
+			{
+				glEnable(GL_BLEND);
+				switch (group.blending.mode)
+				{
+				case PostPassGroup::Blending::ADD:
+					glBlendEquation(GL_FUNC_ADD);
+					break;
+				case PostPassGroup::Blending::SUBTRACT:
+					glBlendEquation(GL_FUNC_SUBTRACT);
+					break;
+				case PostPassGroup::Blending::REVERSE_SUBTRACT:
+					glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+					break;
+				case PostPassGroup::Blending::MIN:
+					glBlendEquation(GL_MIN);
+					break;
+				case PostPassGroup::Blending::MAX:
+					glBlendEquation(GL_MAX);
+					break;
+				}
+				glBlendFunc(group.blending.func.srcFactor, group.blending.func.dstFactor);
+			}
+
+			glBindFramebuffer(GL_FRAMEBUFFER, group.targetFBO);
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
 
-			pass.shader->use();
+			using enum PostPassGroup::PassIteration::Direction;
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, s->colorTex);
-			glUniform1i(glGetUniformLocation(pass.shader->id(), "source"), 0);
+			auto renderPass = [&](int ind, int prevInd, int nextInd)
+				{
+					const PostPass& prevPass = group.passes[prevInd];
+					PostPass& pass = group.passes[ind];
+					const PostPass& nextPass = group.passes[nextInd];
 
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, s->depthTex);
-			glUniform1i(glGetUniformLocation(pass.shader->id(), "sourceDepth"), 1);
+					int prevPassWidth = glm::max(s->width / prevPass.sizeDiv, 1);
+					int prevPassHeight = glm::max(s->height / prevPass.sizeDiv, 1);
+					int passWidth = glm::max(s->width / pass.sizeDiv, 1);
+					int passHeight = glm::max(s->height / pass.sizeDiv, 1);
+					int nextPassWidth = glm::max(s->width / nextPass.sizeDiv, 1);
+					int nextPassHeight = glm::max(s->height / nextPass.sizeDiv, 1);
 
-			int j = 0;
-			for (; j < i; ++j)
+					switch (group.viewportMode)
+					{
+					case PostPassGroup::CURRENT_PASS_SIZE:
+						glViewport(0, 0, passWidth, passHeight);
+						break;
+					case PostPassGroup::PREV_PASS_SIZE:
+						glViewport(0, 0, prevPassWidth, prevPassHeight);
+						break;
+					case PostPassGroup::NEXT_PASS_SIZE:
+						glViewport(0, 0, nextPassWidth, nextPassHeight);
+						break;
+					}
+
+					if (pass.width != passWidth || pass.height != passHeight)
+						pass.initTexture(passWidth, passHeight, GL_RGBA, GL_RGBA, GL_FLOAT);
+
+					glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
+					glClear(GL_COLOR_BUFFER_BIT);
+
+					pass.shader->use();
+
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, s->colorTex);
+					glProgramUniform1i(pass.shader->id(), glGetUniformLocation(pass.shader->id(), "source"), 0);
+
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, s->depthTex);
+					glProgramUniform1i(pass.shader->id(), glGetUniformLocation(pass.shader->id(), "sourceDepth"), 1);
+
+					glActiveTexture(GL_TEXTURE2);
+					glBindTexture(GL_TEXTURE_2D, outputID);
+					glProgramUniform1i(pass.shader->id(), glGetUniformLocation(pass.shader->id(), "prevPassGroup"), 2);
+
+					glProgramUniform4f(pass.shader->id(), glGetUniformLocation(pass.shader->id(), "sourceSize"),
+						s->width, s->height, 1.0f / s->width, 1.0f / s->height);
+
+					int j = 0;
+					for (; j < group.passes.size(); ++j)
+					{
+						if (group.iteration.dir == FORWARD ? (j < ind) : (j > ind))
+						{
+							const PostPass& otherPass = group.passes[j];
+							glActiveTexture(GL_TEXTURE3 + j);
+							glBindTexture(GL_TEXTURE_2D, otherPass.targetTex);
+							{
+								int loc = glGetUniformLocation(pass.shader->id(), std::format("pass{}", j).c_str());
+								if (loc != -1)
+									glProgramUniform1i(pass.shader->id(), loc, j + 3);
+							}
+							{
+								int loc = glGetUniformLocation(pass.shader->id(), std::format("pass{}_size", j).c_str());
+								if (loc != -1)
+									glProgramUniform4f(pass.shader->id(), loc, otherPass.width, otherPass.height, 1.0f / otherPass.width, 1.0f / otherPass.height);
+							}
+							if (j == prevInd)
+							{
+								{
+									int loc = glGetUniformLocation(pass.shader->id(), "prevPass");
+									if (loc != -1)
+										glProgramUniform1i(pass.shader->id(), loc, j + 3);
+								}
+								{
+									int loc = glGetUniformLocation(pass.shader->id(), "prevPass_size");
+									if (loc != -1)
+										glProgramUniform4f(pass.shader->id(), loc, otherPass.width, otherPass.height, 1.0f / otherPass.width, 1.0f / otherPass.height);
+								}
+							}
+						}
+					}
+
+					for (auto& tex : group.uniformTextures)
+					{
+						glActiveTexture(GL_TEXTURE3 + j);
+						glBindTexture(GL_TEXTURE_2D, tex.second);
+						{
+							int loc = glGetUniformLocation(pass.shader->id(), tex.first.c_str());
+							if (loc != -1)
+								glProgramUniform1i(pass.shader->id(), loc, j + 3);
+						}
+						++j;
+					}
+
+					for (auto& uniform : group.uniforms)
+					{
+						int loc = glGetUniformLocation(pass.shader->id(), uniform.name.c_str());
+						if (loc == -1)
+							continue;
+
+						switch (uniform.type)
+						{
+						case Uniform::FLOAT:
+							glProgramUniform1fv(pass.shader->id(), loc, 1, (float*)uniform.value);
+							break;
+						case Uniform::VEC2:
+							glProgramUniform2fv(pass.shader->id(), loc, 1, (float*)uniform.value);
+							break;
+						case Uniform::VEC3:
+							glProgramUniform3fv(pass.shader->id(), loc, 1, (float*)uniform.value);
+							break;
+						case Uniform::VEC4:
+							glProgramUniform4fv(pass.shader->id(), loc, 1, (float*)uniform.value);
+							break;
+						case Uniform::INT:
+							glProgramUniform1iv(pass.shader->id(), loc, 1, (int*)uniform.value);
+							break;
+						case Uniform::IVEC2:
+							glProgramUniform2iv(pass.shader->id(), loc, 1, (int*)uniform.value);
+							break;
+						case Uniform::IVEC3:
+							glProgramUniform3iv(pass.shader->id(), loc, 1, (int*)uniform.value);
+							break;
+						case Uniform::IVEC4:
+							glProgramUniform4iv(pass.shader->id(), loc, 1, (int*)uniform.value);
+							break;
+						case Uniform::UINT:
+							glProgramUniform1uiv(pass.shader->id(), loc, 1, (uint32_t*)uniform.value);
+							break;
+						case Uniform::UVEC2:
+							glProgramUniform2uiv(pass.shader->id(), loc, 1, (uint32_t*)uniform.value);
+							break;
+						case Uniform::UVEC3:
+							glProgramUniform3uiv(pass.shader->id(), loc, 1, (uint32_t*)uniform.value);
+							break;
+						case Uniform::UVEC4:
+							glProgramUniform4uiv(pass.shader->id(), loc, 1, (uint32_t*)uniform.value);
+							break;
+						}
+					}
+
+					glBindVertexArray(passRenderer.VAO);
+					glDrawArrays(GL_TRIANGLES, 0, 6);
+				};
+
+			using enum PostPassGroup::PassIteration::Count;
+			int last = group.passes.size() - (group.iteration.count == SKIP_LAST ? 2 : 1);
+			int first = (group.iteration.count == SKIP_FIRST ? 1 : 0);
+
+			switch (group.iteration.dir)
 			{
-				glActiveTexture(GL_TEXTURE2 + j);
-				glBindTexture(GL_TEXTURE_2D, passes[j].targetTex);
-				glUniform1i(glGetUniformLocation(pass.shader->id(), std::format("pass{}", j).c_str()), j + 2);
+			case FORWARD:
+				for (int j = first; j <= last; ++j)
+				{
+					int prev = glm::clamp(j - 1, 0, (int)group.passes.size() - 1);
+					int next = glm::clamp(j + 1, 0, (int)group.passes.size() - 1);
+					renderPass(j, prev, next);
+				}
+				outputID = group.passes[last].targetTex;
+				break;
+			case BACKWARD:
+				for (int j = last; j >= first; --j)
+				{
+					int prev = glm::clamp(j + 1, 0, (int)group.passes.size() - 1);
+					int next = glm::clamp(j - 1, 0, (int)group.passes.size() - 1);
+					renderPass(j, prev, next);
+				}
+				outputID = group.passes[first].targetTex;
+				break;
 			}
-
-			for (auto& tex : pass.textures)
-			{
-				glActiveTexture(GL_TEXTURE2 + j);
-				glBindTexture(GL_TEXTURE_2D, tex.second);
-				glUniform1i(glGetUniformLocation(pass.shader->id(), tex.first.c_str()), j + 2);
-				++j;
-			}
-
-			glUniform4f(glGetUniformLocation(pass.shader->id(), "sourceSize"), s->width, s->height, 1.0f / s->width, 1.0f / s->height);
-
-			glBindVertexArray(passRenderer.VAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
-		glEnable(GL_BLEND);
-		glEnable(GL_ALPHA_TEST);
 
-		outputID = passes.back().targetTex;
+		glEnable(GL_BLEND);
+		glBlendFuncSeparate(blendSrcRGB, blendDstRGB, blendSrcA, blendDstA);
+		glBlendEquationSeparate(blendEquationRGB, blendEquationA);
+		glEnable(GL_ALPHA_TEST);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, fb);
 	}
@@ -216,7 +402,7 @@ void FX::applyPostProcessing(fdm::Framebuffer& fb, FramebufferInitCallback initC
 	if (s->_magic_number != MAGIC_NUMBER)
 	{
 		s->_magic_number = MAGIC_NUMBER;
-		s->passes = nullptr;
+		s->passGroups = nullptr;
 		s->initCallbacks = std::vector<FramebufferInitCallback>{};
 	}
 	s->initCallbacks.emplace_back(initCallback);
