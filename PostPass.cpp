@@ -14,8 +14,6 @@ void PostPass::initTexture(int width, int height, uint32_t internalFormat, uint3
 	this->format = format;
 	this->formatType = formatType;
 
-	//glGenFramebuffers(1, &targetFBO);
-	//glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);
 	{
 		glGenTextures(1, &targetTex);
 		glBindTexture(GL_TEXTURE_2D, targetTex);
@@ -25,9 +23,7 @@ void PostPass::initTexture(int width, int height, uint32_t internalFormat, uint3
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, targetTex, 0);
 	}
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 PostPass::PostPass(PostPass&& other) noexcept
@@ -80,7 +76,6 @@ PostPass& PostPass::operator=(PostPass&& other) noexcept
 PostPass::PostPass(const PostPass& other)
 {
 	this->shader = other.shader;
-	this->targetTex = other.targetTex;
 	this->width = other.width;
 	this->height = other.height;
 	this->internalFormat = other.internalFormat;
@@ -92,7 +87,6 @@ PostPass::PostPass(const PostPass& other)
 PostPass& PostPass::operator=(const PostPass& other)
 {
 	this->shader = other.shader;
-	this->targetTex = other.targetTex;
 	this->width = other.width;
 	this->height = other.height;
 	this->internalFormat = other.internalFormat;
@@ -107,8 +101,6 @@ void PostPass::cleanup()
 {
 	if (targetTex)
 	{
-		//glDeleteFramebuffers(1, &targetFBO);
-
 		glDeleteTextures(1, &targetTex);
 		targetTex = 0;
 
@@ -191,6 +183,7 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 
 	return *this;
 }
+
 PostPassGroup::PostPassGroup(const PostPassGroup& other)
 {
 	this->passes = other.passes;
@@ -199,8 +192,6 @@ PostPassGroup::PostPassGroup(const PostPassGroup& other)
 	this->viewportMode = other.viewportMode;
 	this->iteration = other.iteration;
 	this->blending = other.blending;
-	this->targetFBO = other.targetFBO;
-	this->outputTex = other.outputTex;
 }
 PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 {
@@ -210,8 +201,6 @@ PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 	this->viewportMode = other.viewportMode;
 	this->iteration = other.iteration;
 	this->blending = other.blending;
-	this->targetFBO = other.targetFBO;
-	this->outputTex = other.outputTex;
 
 	return *this;
 }

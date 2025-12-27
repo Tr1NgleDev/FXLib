@@ -224,7 +224,7 @@ $hook(void, Framebuffer, render)
 						break;
 					}
 
-					if (pass.width != passWidth || pass.height != passHeight)
+					if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
 						pass.initTexture(passWidth, passHeight, GL_RGBA, GL_RGBA, GL_FLOAT);
 
 					glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
@@ -464,6 +464,11 @@ void FX::applyPostProcessing(fdm::Framebuffer& fb, FramebufferInitCallback initC
 		s->_magic_number = MAGIC_NUMBER;
 		s->passGroups = nullptr;
 		s->initCallbacks = std::vector<FramebufferInitCallback>{};
+	}
+	for (auto& callback : s->initCallbacks)
+	{
+		if (callback == initCallback)
+			return;
 	}
 	s->initCallbacks.emplace_back(initCallback);
 }
