@@ -108,6 +108,7 @@ namespace FX
 		} blending;
 
 		uint32_t targetFBO = 0;
+		uint32_t outputTex = 0;
 
 		PostPassGroup() {}
 		PostPassGroup(const std::vector<PostPass>& passes)
