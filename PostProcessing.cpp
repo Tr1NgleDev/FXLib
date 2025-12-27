@@ -245,39 +245,38 @@ $hook(void, Framebuffer, render)
 						s->width, s->height, 1.0f / s->width, 1.0f / s->height);
 
 					int j = 0;
-					for (; j < group.passes.size(); ++j)
+					for (int l = 0; l < group.passes.size(); ++l)
 					{
-						if (group.iteration.dir == FORWARD ? (j < ind) : (j > ind))
+						const PostPass& otherPass = group.passes[l];
+						if (!otherPass.targetTex) continue;
+						glBindTextureUnit(j + 3, otherPass.targetTex);
 						{
-							const PostPass& otherPass = group.passes[j];
-							glBindTextureUnit(j + 3, otherPass.targetTex);
+							int loc = glGetUniformLocation(pass.shader->id(), std::format("pass{}", l).c_str());
+							if (loc != -1)
+								glProgramUniform1i(pass.shader->id(), loc, j + 3);
+						}
+						{
+							int loc = glGetUniformLocation(pass.shader->id(), std::format("pass{}_size", l).c_str());
+							if (loc != -1)
+								glProgramUniform4f(pass.shader->id(), loc, otherPass.width, otherPass.height, 1.0f / otherPass.width, 1.0f / otherPass.height);
+						}
+						if (l == prevInd && ind != prevInd)
+						{
 							{
-								int loc = glGetUniformLocation(pass.shader->id(), std::format("pass{}", j).c_str());
+								int loc = glGetUniformLocation(pass.shader->id(), "prevPass");
 								if (loc != -1)
 									glProgramUniform1i(pass.shader->id(), loc, j + 3);
 							}
 							{
-								int loc = glGetUniformLocation(pass.shader->id(), std::format("pass{}_size", j).c_str());
+								int loc = glGetUniformLocation(pass.shader->id(), "prevPass_size");
 								if (loc != -1)
 									glProgramUniform4f(pass.shader->id(), loc, otherPass.width, otherPass.height, 1.0f / otherPass.width, 1.0f / otherPass.height);
 							}
-							if (j == prevInd)
-							{
-								{
-									int loc = glGetUniformLocation(pass.shader->id(), "prevPass");
-									if (loc != -1)
-										glProgramUniform1i(pass.shader->id(), loc, j + 3);
-								}
-								{
-									int loc = glGetUniformLocation(pass.shader->id(), "prevPass_size");
-									if (loc != -1)
-										glProgramUniform4f(pass.shader->id(), loc, otherPass.width, otherPass.height, 1.0f / otherPass.width, 1.0f / otherPass.height);
-								}
-							}
 						}
+						++j;
 					}
 					// fallback prevPass to outputID (prevPassGroup/default)
-					if (j == 0)
+					if (ind == prevInd)
 					{
 						glBindTextureUnit(j + 3, outputID);
 						{
@@ -308,12 +307,12 @@ $hook(void, Framebuffer, render)
 					{
 						const PostPassGroup& _group = passGroups[k];
 						int k_ = i - k;
-						std::string name = std::format("{}_group", std::string(k_, 'p'));
+						std::string prefix = std::string(k_, 'p');
+						std::string name = std::format("{}_group", prefix);
 						glBindTextureUnit(j + 3, _group.outputTex);
 						{
 							int loc = glGetUniformLocation(pass.shader->id(), name.c_str());
-							if (loc != -1)
-								glProgramUniform1i(pass.shader->id(), loc, j + 3);
+							glProgramUniform1i(pass.shader->id(), loc, j + 3);
 							++j;
 						}
 						int l = 0;
@@ -349,7 +348,8 @@ $hook(void, Framebuffer, render)
 					{
 						glBindTextureUnit(j + 3, outputID);
 						{
-							int loc = glGetUniformLocation(pass.shader->id(), std::format("{}_group", std::string(i, 'p')).c_str());
+							std::string prefix = std::string(i + 1, 'p');
+							int loc = glGetUniformLocation(pass.shader->id(), std::format("{}_group", prefix).c_str());
 							if (loc != -1)
 								glProgramUniform1i(pass.shader->id(), loc, j + 3);
 							++j;

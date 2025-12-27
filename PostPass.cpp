@@ -8,6 +8,12 @@ void PostPass::initTexture(int width, int height, uint32_t internalFormat, uint3
 {
 	cleanup();
 
+	this->width = width;
+	this->height = height;
+	this->internalFormat = internalFormat;
+	this->format = format;
+	this->formatType = formatType;
+
 	//glGenFramebuffers(1, &targetFBO);
 	//glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);
 	{
@@ -33,6 +39,7 @@ PostPass::PostPass(PostPass&& other) noexcept
 	this->internalFormat = other.internalFormat;
 	this->format = other.format;
 	this->formatType = other.formatType;
+	this->sizeDiv = other.sizeDiv;
 
 	other.shader = nullptr;
 	other.targetTex = 0;
@@ -41,6 +48,7 @@ PostPass::PostPass(PostPass&& other) noexcept
 	other.internalFormat = 0;
 	other.format = 0;
 	other.formatType = 0;
+	other.sizeDiv = 1;
 }
 
 PostPass& PostPass::operator=(PostPass&& other) noexcept
@@ -54,6 +62,7 @@ PostPass& PostPass::operator=(PostPass&& other) noexcept
 		this->internalFormat = other.internalFormat;
 		this->format = other.format;
 		this->formatType = other.formatType;
+		this->sizeDiv = other.sizeDiv;
 
 		other.shader = nullptr;
 		other.targetTex = 0;
@@ -62,6 +71,7 @@ PostPass& PostPass::operator=(PostPass&& other) noexcept
 		other.internalFormat = 0;
 		other.format = 0;
 		other.formatType = 0;
+		other.sizeDiv = 1;
 	}
 
 	return *this;
@@ -76,6 +86,7 @@ PostPass::PostPass(const PostPass& other)
 	this->internalFormat = other.internalFormat;
 	this->format = other.format;
 	this->formatType = other.formatType;
+	this->sizeDiv = other.sizeDiv;
 }
 
 PostPass& PostPass::operator=(const PostPass& other)
@@ -87,6 +98,7 @@ PostPass& PostPass::operator=(const PostPass& other)
 	this->internalFormat = other.internalFormat;
 	this->format = other.format;
 	this->formatType = other.formatType;
+	this->sizeDiv = other.sizeDiv;
 
 	return *this;
 }
@@ -130,6 +142,7 @@ PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 	this->iteration = other.iteration;
 	this->blending = other.blending;
 	this->targetFBO = other.targetFBO;
+	this->outputTex = other.outputTex;
 
 	other.passes.clear();
 	other.uniforms.clear();
@@ -138,6 +151,7 @@ PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 	other.iteration = PassIteration{};
 	other.blending = Blending{};
 	other.targetFBO = 0;
+	other.outputTex = 0;
 }
 PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 {
@@ -150,6 +164,7 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 		this->iteration = other.iteration;
 		this->blending = other.blending;
 		this->targetFBO = other.targetFBO;
+		this->outputTex = other.outputTex;
 
 		other.passes.clear();
 		other.uniforms.clear();
@@ -158,6 +173,7 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 		other.iteration = PassIteration{};
 		other.blending = Blending{};
 		other.targetFBO = 0;
+		other.outputTex = 0;
 	}
 
 	return *this;
@@ -171,6 +187,7 @@ PostPassGroup::PostPassGroup(const PostPassGroup& other)
 	this->iteration = other.iteration;
 	this->blending = other.blending;
 	this->targetFBO = other.targetFBO;
+	this->outputTex = other.outputTex;
 }
 PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 {
@@ -181,6 +198,7 @@ PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 	this->iteration = other.iteration;
 	this->blending = other.blending;
 	this->targetFBO = other.targetFBO;
+	this->outputTex = other.outputTex;
 
 	return *this;
 }
