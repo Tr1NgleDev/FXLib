@@ -3,7 +3,7 @@
   name: "FXLib",
   author: "Tr1NgleDev",
   descriptionFile: "description.txt",
-  version: "0.3.1 [BETA]",
+  version: "0.3.2 [BETA]",
   gameVersion: "0.2.1.4",
   modDLL: "FXLib.dll",
   externalDLLs: [

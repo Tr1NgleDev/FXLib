@@ -107,6 +107,9 @@ namespace FX
 			} func;
 		} blending;
 
+		bool copyLastGroup = false; // blit last group's passes into this group's passes
+		bool clearColor = true;
+
 		uint32_t targetFBO = 0;
 		uint32_t outputTex = 0;
 

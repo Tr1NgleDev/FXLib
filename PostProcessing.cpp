@@ -166,6 +166,33 @@ $hook(void, Framebuffer, render)
 				glCreateFramebuffers(1, &group.targetFBO);
 			}
 
+			if (group.copyLastGroup)
+			{
+				int j = 0;
+				for (auto& pass : group.passes)
+				{
+					int passWidth = glm::max(s->width / pass.sizeDiv, 1);
+					int passHeight = glm::max(s->height / pass.sizeDiv, 1);
+					if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
+						pass.initTexture(passWidth, passHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+					glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
+					if (i - 1 < 0)
+					{
+						glBlitNamedFramebuffer(s->fbo, group.targetFBO, 0, 0, s->width, s->height, 0, 0, passWidth, passHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+					}
+					else
+					{
+						PostPassGroup& prevGroup = passGroups[i - 1];
+						PostPass& gPass = prevGroup.passes[glm::clamp(j, 0, (int)prevGroup.passes.size() - 1)];
+						int gPassWidth = glm::max(s->width / gPass.sizeDiv, 1);
+						int gPassHeight = glm::max(s->height / gPass.sizeDiv, 1);
+						glNamedFramebufferTexture(prevGroup.targetFBO, GL_COLOR_ATTACHMENT0, gPass.targetTex, 0);
+						glBlitNamedFramebuffer(prevGroup.targetFBO, group.targetFBO, 0, 0, gPassWidth, gPassHeight, 0, 0, passWidth, passHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+					}
+					++j;
+				}
+			}
+
 			if (group.blending.mode == PostPassGroup::Blending::DISABLED)
 			{
 				glDisable(GL_BLEND);
@@ -195,6 +222,7 @@ $hook(void, Framebuffer, render)
 			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, group.targetFBO);
+
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 			using enum PostPassGroup::PassIteration::Direction;
@@ -237,7 +265,8 @@ $hook(void, Framebuffer, render)
 						break;
 					}
 
-					glClear(GL_COLOR_BUFFER_BIT);
+					if (group.clearColor)
+						glClear(GL_COLOR_BUFFER_BIT);
 
 					pass.shader->use();
 
@@ -280,6 +309,32 @@ $hook(void, Framebuffer, render)
 								int loc = glGetUniformLocation(pass.shader->id(), "prevPass_size");
 								if (loc != -1)
 									glProgramUniform4f(pass.shader->id(), loc, otherPass.width, otherPass.height, 1.0f / otherPass.width, 1.0f / otherPass.height);
+							}
+						}
+						if (l == ind)
+						{
+							{
+								int loc = glGetUniformLocation(pass.shader->id(), "curPass");
+								if (loc != -1)
+									glProgramUniform1i(pass.shader->id(), loc, j + 3);
+							}
+							{
+								int loc = glGetUniformLocation(pass.shader->id(), "curPass_size");
+								if (loc != -1)
+									glProgramUniform4f(pass.shader->id(), loc, pass.width, pass.height, 1.0f / pass.width, 1.0f / pass.height);
+							}
+						}
+						if (l == nextInd && ind != nextInd)
+						{
+							{
+								int loc = glGetUniformLocation(pass.shader->id(), "nextPass");
+								if (loc != -1)
+									glProgramUniform1i(pass.shader->id(), loc, j + 3);
+							}
+							{
+								int loc = glGetUniformLocation(pass.shader->id(), "nextPass_size");
+								if (loc != -1)
+									glProgramUniform4f(pass.shader->id(), loc, nextPass.width, nextPass.height, 1.0f / nextPass.width, 1.0f / nextPass.height);
 							}
 						}
 						++j;

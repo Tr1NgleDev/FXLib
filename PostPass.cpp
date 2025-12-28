@@ -148,6 +148,8 @@ PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 	this->blending = other.blending;
 	this->targetFBO = other.targetFBO;
 	this->outputTex = other.outputTex;
+	this->copyLastGroup = other.copyLastGroup;
+	this->clearColor = other.clearColor;
 
 	other.passes.clear();
 	other.uniforms.clear();
@@ -157,6 +159,8 @@ PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 	other.blending = Blending{};
 	other.targetFBO = 0;
 	other.outputTex = 0;
+	other.copyLastGroup = false;
+	other.clearColor = true;
 }
 PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 {
@@ -170,6 +174,8 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 		this->blending = other.blending;
 		this->targetFBO = other.targetFBO;
 		this->outputTex = other.outputTex;
+		this->copyLastGroup = other.copyLastGroup;
+		this->clearColor = other.clearColor;
 
 		other.passes.clear();
 		other.uniforms.clear();
@@ -179,6 +185,8 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 		other.blending = Blending{};
 		other.targetFBO = 0;
 		other.outputTex = 0;
+		other.copyLastGroup = false;
+		other.clearColor = true;
 	}
 
 	return *this;
@@ -192,6 +200,8 @@ PostPassGroup::PostPassGroup(const PostPassGroup& other)
 	this->viewportMode = other.viewportMode;
 	this->iteration = other.iteration;
 	this->blending = other.blending;
+	this->copyLastGroup = other.copyLastGroup;
+	this->clearColor = other.clearColor;
 }
 PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 {
@@ -201,6 +211,8 @@ PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 	this->viewportMode = other.viewportMode;
 	this->iteration = other.iteration;
 	this->blending = other.blending;
+	this->copyLastGroup = other.copyLastGroup;
+	this->clearColor = other.clearColor;
 
 	return *this;
 }
