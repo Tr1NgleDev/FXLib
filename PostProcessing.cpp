@@ -195,11 +195,6 @@ $hook(void, Framebuffer, render)
 				}
 			}
 
-			if (group.preDrawCallback)
-			{
-				group.preDrawCallback(group);
-			}
-
 			if (group.blending.mode == PostPassGroup::Blending::DISABLED)
 			{
 				glDisable(GL_BLEND);
@@ -231,6 +226,11 @@ $hook(void, Framebuffer, render)
 			glBindFramebuffer(GL_FRAMEBUFFER, group.targetFBO);
 
 			glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+
+			if (group.preDrawCallback)
+			{
+				group.preDrawCallback(group);
+			}
 
 			using enum PostPassGroup::PassIteration::Direction;
 
