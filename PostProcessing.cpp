@@ -195,6 +195,11 @@ $hook(void, Framebuffer, render)
 				}
 			}
 
+			if (group.preDrawCallback)
+			{
+				group.preDrawCallback(group);
+			}
+
 			if (group.blending.mode == PostPassGroup::Blending::DISABLED)
 			{
 				glDisable(GL_BLEND);
@@ -496,6 +501,11 @@ $hook(void, Framebuffer, render)
 				}
 				outputID = group.outputTex = group.passes[first].targetTex;
 				break;
+			}
+
+			if (group.postDrawCallback)
+			{
+				group.postDrawCallback(group);
 			}
 		}
 

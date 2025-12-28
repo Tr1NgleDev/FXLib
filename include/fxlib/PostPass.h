@@ -57,6 +57,8 @@ namespace FX
 
 	struct FXLIB_API PostPassGroup
 	{
+		using DrawCallback = std::add_pointer<void(PostPassGroup& pass)>::type;
+
 		std::vector<PostPass> passes{ };
 		std::vector<Uniform> uniforms{ };
 		std::unordered_map<std::string, uint32_t> uniformTextures{ }; // uniform name -> texture id
@@ -116,6 +118,9 @@ namespace FX
 
 		uint32_t targetFBO = 0;
 		uint32_t outputTex = 0;
+
+		DrawCallback preDrawCallback = nullptr;
+		DrawCallback postDrawCallback = nullptr;
 
 		PostPassGroup() {}
 		PostPassGroup(const std::vector<PostPass>& passes)
