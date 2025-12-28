@@ -29,14 +29,18 @@ namespace FX
 	{
 		const fdm::Shader* shader = nullptr;
 		int sizeDiv = 1;
+		enum
+		{
+			R,
+			RG,
+			RGB,
+			RGBA
+		} passFormat = RGBA;
 
 		// internal stuff
 		uint32_t targetTex = 0;
 		int width = 1, height = 1;
-		uint32_t internalFormat = GL_RGB;
-		uint32_t format = GL_RGB;
-		uint32_t formatType = GL_FLOAT;
-		void initTexture(int width, int height, uint32_t internalFormat, uint32_t format, uint32_t formatType);
+		void initTexture(int width, int height);
 
 		PostPass() {}
 		PostPass(const fdm::Shader* shader, int sizeDiv = 1) :

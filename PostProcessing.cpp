@@ -87,7 +87,7 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 	if (s->_magic_number != MAGIC_NUMBER)
 		return original(self, width, height, alphaChannel);
 
-	uint32_t internalFormat = alphaChannel ? GL_RGBA32F : GL_RGB32F;
+	uint32_t internalFormat = alphaChannel ? GL_RGBA16F : GL_RGB16F;
 	uint32_t format = alphaChannel ? GL_RGBA : GL_RGB;
 
 	if (s->width == width && s->height == height && s->alphaChannel == alphaChannel)
@@ -176,7 +176,7 @@ $hook(void, Framebuffer, render)
 					int passWidth = glm::max(s->width / pass.sizeDiv, 1);
 					int passHeight = glm::max(s->height / pass.sizeDiv, 1);
 					if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
-						pass.initTexture(passWidth, passHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+						pass.initTexture(passWidth, passHeight);
 					glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
 					if (i - 1 < 0)
 					{
@@ -246,21 +246,21 @@ $hook(void, Framebuffer, render)
 					{
 					case PostPassGroup::CURRENT_PASS_SIZE:
 						if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
-							pass.initTexture(passWidth, passHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+							pass.initTexture(passWidth, passHeight);
 
 						glViewport(0, 0, passWidth, passHeight);
 						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
 						break;
 					case PostPassGroup::PREV_PASS_SIZE:
 						if (prevPass.targetTex == 0 || prevPass.width != prevPassWidth || prevPass.height != prevPassHeight)
-							prevPass.initTexture(prevPassWidth, prevPassHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+							prevPass.initTexture(prevPassWidth, prevPassHeight);
 
 						glViewport(0, 0, prevPassWidth, prevPassHeight);
 						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, prevPass.targetTex, 0);
 						break;
 					case PostPassGroup::NEXT_PASS_SIZE:
 						if (nextPass.targetTex == 0 || nextPass.width != nextPassWidth || nextPass.height != nextPassHeight)
-							nextPass.initTexture(nextPassWidth, nextPassHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+							nextPass.initTexture(nextPassWidth, nextPassHeight);
 
 						glViewport(0, 0, nextPassWidth, nextPassHeight);
 						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, nextPass.targetTex, 0);

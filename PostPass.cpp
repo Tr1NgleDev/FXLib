@@ -4,15 +4,35 @@
 using namespace FX;
 using namespace fdm;
 
-void PostPass::initTexture(int width, int height, uint32_t internalFormat, uint32_t format, uint32_t formatType)
+void PostPass::initTexture(int width, int height)
 {
 	cleanup();
 
 	this->width = width;
 	this->height = height;
-	this->internalFormat = internalFormat;
-	this->format = format;
-	this->formatType = formatType;
+	GLenum internalFormat = 0;
+	GLenum format = 0;
+	GLenum formatType = GL_FLOAT;
+
+	switch (passFormat)
+	{
+	case FX::PostPass::R:
+		internalFormat = GL_R16F;
+		format = GL_RED;
+		break;
+	case FX::PostPass::RG:
+		internalFormat = GL_RG16F;
+		format = GL_RG;
+		break;
+	case FX::PostPass::RGB:
+		internalFormat = GL_RGB16F;
+		format = GL_RGB;
+		break;
+	case FX::PostPass::RGBA:
+		internalFormat = GL_RGBA16F;
+		format = GL_RGBA;
+		break;
+	}
 
 	{
 		glGenTextures(1, &targetTex);
@@ -32,19 +52,15 @@ PostPass::PostPass(PostPass&& other) noexcept
 	this->targetTex = other.targetTex;
 	this->width = other.width;
 	this->height = other.height;
-	this->internalFormat = other.internalFormat;
-	this->format = other.format;
-	this->formatType = other.formatType;
 	this->sizeDiv = other.sizeDiv;
+	this->passFormat = other.passFormat;
 
 	other.shader = nullptr;
 	other.targetTex = 0;
 	other.width = 1;
 	other.height = 1;
-	other.internalFormat = 0;
-	other.format = 0;
-	other.formatType = 0;
 	other.sizeDiv = 1;
+	other.passFormat = RGBA;
 }
 
 PostPass& PostPass::operator=(PostPass&& other) noexcept
@@ -55,19 +71,15 @@ PostPass& PostPass::operator=(PostPass&& other) noexcept
 		this->targetTex = other.targetTex;
 		this->width = other.width;
 		this->height = other.height;
-		this->internalFormat = other.internalFormat;
-		this->format = other.format;
-		this->formatType = other.formatType;
 		this->sizeDiv = other.sizeDiv;
+		this->passFormat = other.passFormat;
 
 		other.shader = nullptr;
 		other.targetTex = 0;
 		other.width = 1;
 		other.height = 1;
-		other.internalFormat = 0;
-		other.format = 0;
-		other.formatType = 0;
 		other.sizeDiv = 1;
+		other.passFormat = RGBA;
 	}
 
 	return *this;
@@ -78,10 +90,8 @@ PostPass::PostPass(const PostPass& other)
 	this->shader = other.shader;
 	this->width = other.width;
 	this->height = other.height;
-	this->internalFormat = other.internalFormat;
-	this->format = other.format;
-	this->formatType = other.formatType;
 	this->sizeDiv = other.sizeDiv;
+	this->passFormat = other.passFormat;
 }
 
 PostPass& PostPass::operator=(const PostPass& other)
@@ -89,10 +99,8 @@ PostPass& PostPass::operator=(const PostPass& other)
 	this->shader = other.shader;
 	this->width = other.width;
 	this->height = other.height;
-	this->internalFormat = other.internalFormat;
-	this->format = other.format;
-	this->formatType = other.formatType;
 	this->sizeDiv = other.sizeDiv;
+	this->passFormat = other.passFormat;
 
 	return *this;
 }
@@ -106,9 +114,6 @@ void PostPass::cleanup()
 
 		width = 1;
 		height = 1;
-		internalFormat = 0;
-		format = 0;
-		formatType = 0;
 	}
 }
 
