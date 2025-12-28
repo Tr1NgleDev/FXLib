@@ -86,6 +86,7 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 	if (s->_magic_number != MAGIC_NUMBER)
 		return original(self, width, height, alphaChannel);
 
+	uint32_t internalFormat = alphaChannel ? GL_RGBA32F : GL_RGB32F;
 	uint32_t format = alphaChannel ? GL_RGBA : GL_RGB;
 
 	self->cleanup();
@@ -215,19 +216,21 @@ $hook(void, Framebuffer, render)
 					{
 					case PostPassGroup::CURRENT_PASS_SIZE:
 						glViewport(0, 0, passWidth, passHeight);
+						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
 						break;
 					case PostPassGroup::PREV_PASS_SIZE:
 						glViewport(0, 0, prevPassWidth, prevPassHeight);
+						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, prevPass.targetTex, 0);
 						break;
 					case PostPassGroup::NEXT_PASS_SIZE:
 						glViewport(0, 0, nextPassWidth, nextPassHeight);
+						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, nextPass.targetTex, 0);
 						break;
 					}
 
 					if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
-						pass.initTexture(passWidth, passHeight, GL_RGBA, GL_RGBA, GL_FLOAT);
+						pass.initTexture(passWidth, passHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
-					glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
 					glClear(GL_COLOR_BUFFER_BIT);
 
 					pass.shader->use();
