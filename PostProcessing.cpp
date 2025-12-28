@@ -31,7 +31,8 @@ public:
 	int height = 1;
 	uint32_t _magic_number = MAGIC_NUMBER;
 	uint32_t depthTex = 0;
-	PAD(8);
+	bool alphaChannel = false;
+	PAD(7);
 	std::vector<PostPassGroup>* passGroups{};
 	void* texPtr = &colorTex;
 	const fdm::Shader* shader = nullptr;
@@ -89,15 +90,18 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 	uint32_t internalFormat = alphaChannel ? GL_RGBA32F : GL_RGB32F;
 	uint32_t format = alphaChannel ? GL_RGBA : GL_RGB;
 
+	if (s->width == width && s->height == height && s->alphaChannel == alphaChannel)
+		return;
+
 	self->cleanup();
 
 	s->width = width;
 	s->height = height;
+	s->alphaChannel == alphaChannel;
 
 	s->passGroups = new std::vector<PostPassGroup>();
 
-	glGenFramebuffers(1, &s->fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, s->fbo);
+	glCreateFramebuffers(1, &s->fbo);
 
 	{
 		glGenTextures(1, &s->colorTex);
@@ -108,7 +112,7 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT); // 4dm doesn't even set this lol
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT); // 4dm doesn't even set this lol
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s->colorTex, 0);
+		glNamedFramebufferTexture(s->fbo, GL_COLOR_ATTACHMENT0, s->colorTex, 0);
 	}
 
 	{
@@ -120,10 +124,8 @@ $hook(void, Framebuffer, init, GLsizei width, GLsizei height, bool alphaChannel)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, s->depthTex, 0);
+		glNamedFramebufferTexture(s->fbo, GL_DEPTH_ATTACHMENT, s->depthTex, 0);
 	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	framebuffers.insert(s);
 
