@@ -201,9 +201,9 @@ $hook(void, Framebuffer, render)
 
 			auto renderPass = [&](int ind, int prevInd, int nextInd)
 				{
-					const PostPass& prevPass = group.passes[prevInd];
+					PostPass& prevPass = group.passes[prevInd];
 					PostPass& pass = group.passes[ind];
-					const PostPass& nextPass = group.passes[nextInd];
+					PostPass& nextPass = group.passes[nextInd];
 
 					int prevPassWidth = glm::max(s->width / prevPass.sizeDiv, 1);
 					int prevPassHeight = glm::max(s->height / prevPass.sizeDiv, 1);
@@ -215,21 +215,27 @@ $hook(void, Framebuffer, render)
 					switch (group.viewportMode)
 					{
 					case PostPassGroup::CURRENT_PASS_SIZE:
+						if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
+							pass.initTexture(passWidth, passHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
 						glViewport(0, 0, passWidth, passHeight);
 						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, pass.targetTex, 0);
 						break;
 					case PostPassGroup::PREV_PASS_SIZE:
+						if (prevPass.targetTex == 0 || prevPass.width != prevPassWidth || prevPass.height != prevPassHeight)
+							prevPass.initTexture(prevPassWidth, prevPassHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
 						glViewport(0, 0, prevPassWidth, prevPassHeight);
 						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, prevPass.targetTex, 0);
 						break;
 					case PostPassGroup::NEXT_PASS_SIZE:
+						if (nextPass.targetTex == 0 || nextPass.width != nextPassWidth || nextPass.height != nextPassHeight)
+							nextPass.initTexture(nextPassWidth, nextPassHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+
 						glViewport(0, 0, nextPassWidth, nextPassHeight);
 						glNamedFramebufferTexture(group.targetFBO, GL_COLOR_ATTACHMENT0, nextPass.targetTex, 0);
 						break;
 					}
-
-					if (pass.targetTex == 0 || pass.width != passWidth || pass.height != passHeight)
-						pass.initTexture(passWidth, passHeight, GL_RGBA32F, GL_RGBA, GL_FLOAT);
 
 					glClear(GL_COLOR_BUFFER_BIT);
 
