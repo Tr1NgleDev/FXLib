@@ -155,6 +155,8 @@ PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 	this->outputTex = other.outputTex;
 	this->copyLastGroup = other.copyLastGroup;
 	this->clearColor = other.clearColor;
+	this->preDrawCallback = other.preDrawCallback;
+	this->postDrawCallback = other.postDrawCallback;
 
 	other.passes.clear();
 	other.uniforms.clear();
@@ -166,6 +168,8 @@ PostPassGroup::PostPassGroup(PostPassGroup&& other) noexcept
 	other.outputTex = 0;
 	other.copyLastGroup = false;
 	other.clearColor = true;
+	other.preDrawCallback = nullptr;
+	other.postDrawCallback = nullptr;
 }
 PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 {
@@ -181,6 +185,8 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 		this->outputTex = other.outputTex;
 		this->copyLastGroup = other.copyLastGroup;
 		this->clearColor = other.clearColor;
+		this->preDrawCallback = other.preDrawCallback;
+		this->postDrawCallback = other.postDrawCallback;
 
 		other.passes.clear();
 		other.uniforms.clear();
@@ -192,6 +198,8 @@ PostPassGroup& PostPassGroup::operator=(PostPassGroup&& other) noexcept
 		other.outputTex = 0;
 		other.copyLastGroup = false;
 		other.clearColor = true;
+		other.preDrawCallback = nullptr;
+		other.postDrawCallback = nullptr;
 	}
 
 	return *this;
@@ -207,6 +215,8 @@ PostPassGroup::PostPassGroup(const PostPassGroup& other)
 	this->blending = other.blending;
 	this->copyLastGroup = other.copyLastGroup;
 	this->clearColor = other.clearColor;
+	this->preDrawCallback = other.preDrawCallback;
+	this->postDrawCallback = other.postDrawCallback;
 }
 PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 {
@@ -218,6 +228,8 @@ PostPassGroup& PostPassGroup::operator=(const PostPassGroup& other)
 	this->blending = other.blending;
 	this->copyLastGroup = other.copyLastGroup;
 	this->clearColor = other.clearColor;
+	this->preDrawCallback = other.preDrawCallback;
+	this->postDrawCallback = other.postDrawCallback;
 
 	return *this;
 }
