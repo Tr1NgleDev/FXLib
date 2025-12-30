@@ -9,6 +9,7 @@ A [4D-Modding](https://4d-modding.com/) library for various graphics effects and
 - Trails
 - Post-Processing Passes
 - Shader Storage Buffers
+- Texture Buffers
 - Instanced Mesh Rendering
 - Shader Patching
 
