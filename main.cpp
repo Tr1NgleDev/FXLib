@@ -49,6 +49,15 @@ $hook(void, StateIntro, init, StateManager& s)
 
 	glfwMakeContextCurrent(window);
 
+	if (!GLEW_ARB_bindless_texture)
+	{
+		MessageBoxA(0, "Your computer does not support the ARB_bindless_texture OpenGL extension, which is required for FXLib to work\n:(", "Oopsie!", MB_ICONERROR);
+		glfwDestroyWindow(s.window);
+		glfwTerminate();
+		exit(0);
+		return;
+	}
+
 	initializedContext = true;
 
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, 1);

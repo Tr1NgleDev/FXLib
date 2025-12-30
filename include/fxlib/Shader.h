@@ -61,6 +61,7 @@ namespace FX
 		void setUniform(int loc, const glm::mat4x3& v, bool transpose = false) const { if (loc != -1) glProgramUniformMatrix4x3fv(ID, loc, 1, transpose, &v[0][0]); }
 		void setUniform(int loc, const fdm::m4::Mat5& v) const { if (loc != -1) glProgramUniform1fv(ID, loc, 5 * 5, &v[0][0]); }
 		void setUniform(int loc, const fdm::m4::BiVector4& v) const { if (loc != -1) glProgramUniform1fv(ID, loc, 6, &v.xy); }
+		void setUniform(int loc, const TextureBuffer& v) const { if (loc != -1) glProgramUniformHandleui64ARB(ID, loc, v.getHandle()); }
 
 		void setUniform(const std::string& name, int count, const float* v) const { setUniform(getUniformLocation(name), count, v); }
 		void setUniform(const std::string& name, float v) const { setUniform(getUniformLocation(name), v); }
@@ -98,5 +99,6 @@ namespace FX
 		void setUniform(const std::string& name, const glm::mat4x3& v, bool transpose = false) const { setUniform(getUniformLocation(name), v, transpose); }
 		void setUniform(const std::string& name, const fdm::m4::Mat5& v) const { setUniform(getUniformLocation(name), v); }
 		void setUniform(const std::string& name, const fdm::m4::BiVector4& v) const { setUniform(getUniformLocation(name), v); }
+		void setUniform(const std::string& name, const TextureBuffer& v) const { setUniform(getUniformLocation(name), v); }
 	};
 }

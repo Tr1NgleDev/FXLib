@@ -10,6 +10,7 @@ Features:
 - Trails  
 - Post-Processing Passes  
 - Shader Storage Buffers  
+- Texture Buffers  
 - Instanced Mesh Rendering  
 - Shader Patching  
 -----------------

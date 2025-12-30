@@ -118,6 +118,8 @@ void TextureBuffer::cleanup()
 {
 	if (ID)
 	{
+		glMakeTextureHandleNonResidentARB(handle);
+		handle = NULL;
 		glDeleteTextures(1, &ID);
 		ID = NULL;
 		dimensions = 1;
@@ -143,6 +145,9 @@ void TextureBuffer::init(size_t x, DataType type, const void* data)
 
 	glTextureStorage1D(ID, 1, glType(type), x);
 
+	handle = glGetTextureHandleARB(ID);
+	glMakeTextureHandleResidentARB(handle);
+
 	if (data != nullptr)
 	{
 		uploadData(x, data);
@@ -165,6 +170,9 @@ void TextureBuffer::init(size_t x, size_t y, DataType type, const void* data)
 	glTextureParameteri(ID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTextureStorage2D(ID, 1, glType(type), x, y);
+
+	handle = glGetTextureHandleARB(ID);
+	glMakeTextureHandleResidentARB(handle);
 
 	if (data != nullptr)
 	{
@@ -191,6 +199,9 @@ void TextureBuffer::init(size_t x, size_t y, size_t z, DataType type, const void
 
 	glTextureStorage3D(ID, 1, glType(type), x, y, z);
 
+	handle = glGetTextureHandleARB(ID);
+	glMakeTextureHandleResidentARB(handle);
+
 	if (data != nullptr)
 	{
 		uploadData(x, y, z, data);
@@ -205,6 +216,7 @@ TextureBuffer::TextureBuffer(TextureBuffer&& other) noexcept
 	this->x = other.x;
 	this->y = other.y;
 	this->z = other.z;
+	this->handle = other.handle;
 
 	other.ID = NULL;
 	other.dimensions = 1;
@@ -212,6 +224,7 @@ TextureBuffer::TextureBuffer(TextureBuffer&& other) noexcept
 	other.x = 0;
 	other.y = 0;
 	other.z = 0;
+	other.handle = NULL;
 }
 TextureBuffer& TextureBuffer::operator=(TextureBuffer&& other) noexcept
 {
@@ -223,6 +236,7 @@ TextureBuffer& TextureBuffer::operator=(TextureBuffer&& other) noexcept
 		this->x = other.x;
 		this->y = other.y;
 		this->z = other.z;
+		this->handle = other.handle;
 
 		other.ID = NULL;
 		other.dimensions = 1;
@@ -230,6 +244,7 @@ TextureBuffer& TextureBuffer::operator=(TextureBuffer&& other) noexcept
 		other.x = 0;
 		other.y = 0;
 		other.z = 0;
+		other.handle = NULL;
 	}
 
 	return *this;

@@ -44,6 +44,7 @@ namespace FX
 		size_t x = 0, y = 0, z = 0;
 		int dimensions = 1;
 		DataType type = R8i;
+		uint64_t handle = NULL;
 
 		void init(size_t x, DataType type, const void* data = nullptr);
 		void init(size_t x, size_t y, DataType type, const void* data = nullptr);
@@ -82,12 +83,17 @@ namespace FX
 			return ID;
 		}
 
-		void use(uint32_t index) const
+		void bind(uint32_t unit) const
 		{
 			if (ID)
 			{
-				glBindTextureUnit(index, ID);
+				glBindTextureUnit(unit, ID);
 			}
+		}
+		
+		uint64_t getHandle() const
+		{
+			return handle;
 		}
 
 		DataType getType() const
