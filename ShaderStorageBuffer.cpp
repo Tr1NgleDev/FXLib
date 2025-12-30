@@ -100,3 +100,25 @@ void ShaderStorageBuffer::cleanup()
 		size = 0;
 	}
 }
+
+ShaderStorageBuffer::ShaderStorageBuffer(ShaderStorageBuffer&& other) noexcept
+{
+	this->ID = other.ID;
+	this->size = other.size;
+
+	other.ID = NULL;
+	other.size = 0;
+}
+ShaderStorageBuffer& ShaderStorageBuffer::operator=(ShaderStorageBuffer&& other) noexcept
+{
+	if (this != &other)
+	{
+		this->ID = other.ID;
+		this->size = other.size;
+
+		other.ID = NULL;
+		other.size = 0;
+	}
+
+	return *this;
+}

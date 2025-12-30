@@ -62,6 +62,7 @@
     <ClCompile Include="PostPass.cpp" />
     <ClCompile Include="ShaderPatcher.cpp" />
     <ClCompile Include="ShaderStorageBuffer.cpp" />
+    <ClCompile Include="TextureBuffer.cpp" />
     <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="TrailRenderer.cpp" />
   </ItemGroup>
@@ -76,6 +77,7 @@
     <ClInclude Include="include\fxlib\Shader.h" />
     <ClInclude Include="include\fxlib\ShaderPatcher.h" />
     <ClInclude Include="include\fxlib\ShaderStorageBuffer.h" />
+    <ClInclude Include="include\fxlib\TextureBuffer.h" />
     <ClInclude Include="include\fxlib\ThreadPool.h" />
     <ClInclude Include="include\fxlib\TrailRenderer.h" />
     <ClInclude Include="include\fxlib\utils.h" />

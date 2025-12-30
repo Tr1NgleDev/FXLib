@@ -15,6 +15,8 @@ namespace FX
 
 	public:
 		ShaderStorageBuffer() { }
+		ShaderStorageBuffer(ShaderStorageBuffer&& other) noexcept;
+		ShaderStorageBuffer& operator=(ShaderStorageBuffer&& other) noexcept;
 		ShaderStorageBuffer(size_t size, const void* data = nullptr);
 		ShaderStorageBuffer(size_t elementSize, const std::vector<void*>& data);
 
@@ -40,6 +42,11 @@ namespace FX
 			{
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, ID);
 			}
+		}
+
+		size_t getSize() const
+		{
+			return size;
 		}
 
 		~ShaderStorageBuffer();

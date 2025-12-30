@@ -16,6 +16,7 @@ namespace FX
 #include "utils.h"
 #include "Shader.h"
 #include "ShaderStorageBuffer.h"
+#include "TextureBuffer.h"
 #include "InstancedMeshRenderer.h"
 #include "ThreadPool.h"
 #include "TrailRenderer.h"
