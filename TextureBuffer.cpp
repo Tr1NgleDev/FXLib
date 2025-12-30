@@ -139,14 +139,14 @@ void TextureBuffer::init(size_t x, DataType type, const void* data)
 	this->type = type;
 	
 	glCreateTextures(GL_TEXTURE_1D, 1, &ID);
+
+	glTextureStorage1D(ID, 1, glType(type), x);
+
 	glTextureParameteri(ID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(ID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTextureParameteri(ID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTextureStorage1D(ID, 1, glType(type), x);
-
-	handle = glGetTextureHandleARB(ID);
-	glMakeTextureHandleResidentARB(handle);
 
 	if (data != nullptr)
 	{
@@ -164,6 +164,9 @@ void TextureBuffer::init(size_t x, size_t y, DataType type, const void* data)
 	this->type = type;
 
 	glCreateTextures(GL_TEXTURE_2D, 1, &ID);
+
+	glTextureStorage2D(ID, 1, glType(type), x, y);
+
 	glTextureParameteri(ID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(ID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(ID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -191,6 +194,9 @@ void TextureBuffer::init(size_t x, size_t y, size_t z, DataType type, const void
 	this->type = type;
 
 	glCreateTextures(GL_TEXTURE_3D, 1, &ID);
+
+	glTextureStorage3D(ID, 1, glType(type), x, y, z);
+
 	glTextureParameteri(ID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(ID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTextureParameteri(ID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -324,6 +330,7 @@ GLenum TextureBuffer::glFormat(DataType type)
 	case FX::TextureBuffer::R16u:
 	case FX::TextureBuffer::R32i:
 	case FX::TextureBuffer::R32u:
+		return GL_RED_INTEGER;
 	case FX::TextureBuffer::R32f:
 		return GL_RED;
 	case FX::TextureBuffer::RG8i:
@@ -332,6 +339,7 @@ GLenum TextureBuffer::glFormat(DataType type)
 	case FX::TextureBuffer::RG16u:
 	case FX::TextureBuffer::RG32i:
 	case FX::TextureBuffer::RG32u:
+		return GL_RG_INTEGER;
 	case FX::TextureBuffer::RG32f:
 		return GL_RG;
 	case FX::TextureBuffer::RGB8i:
@@ -340,6 +348,7 @@ GLenum TextureBuffer::glFormat(DataType type)
 	case FX::TextureBuffer::RGB16u:
 	case FX::TextureBuffer::RGB32i:
 	case FX::TextureBuffer::RGB32u:
+		return GL_RGB_INTEGER;
 	case FX::TextureBuffer::RGB32f:
 		return GL_RGB;
 	case FX::TextureBuffer::RGBA8i:
@@ -348,6 +357,7 @@ GLenum TextureBuffer::glFormat(DataType type)
 	case FX::TextureBuffer::RGBA16u:
 	case FX::TextureBuffer::RGBA32i:
 	case FX::TextureBuffer::RGBA32u:
+		return GL_RGBA_INTEGER;
 	case FX::TextureBuffer::RGBA32f:
 		return GL_RGBA;
 	}
