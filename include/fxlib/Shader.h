@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FXLib.h"
+#include "TextureBuffer.h"
 
 namespace FX
 {
